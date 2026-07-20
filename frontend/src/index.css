@@ -1,0 +1,348 @@
+/* =========================================
+   GOOGLE FONTS
+========================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap");
+
+/* =========================================
+   TAILWIND
+========================================= */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================================
+   ROOT VARIABLES
+========================================= */
+
+:root {
+  --bg: #0a0906;
+  --surface: #111009;
+
+  --card: #161411;
+  --card2: #1c1814;
+  --card3: #201c18;
+
+  --border: rgba(212, 170, 90, 0.15);
+
+  --gold: #d4aa5a;
+  --gold-dim: rgba(212, 170, 90, 0.08);
+
+  --cream: #f5ede0;
+  --muted: #8a7d6a;
+  --text: #e8dcc8;
+
+  --accent: #c17a3a;
+
+  --green: #4a9a6f;
+  --green-dim: rgba(74, 154, 111, 0.12);
+
+  --red: #c94040;
+  --red-dim: rgba(201, 64, 64, 0.12);
+
+  --orange: #e8883a;
+  --orange-dim: rgba(232, 136, 58, 0.12);
+
+  --blue: #5a84e8;
+  --blue-dim: rgba(90, 132, 232, 0.12);
+}
+
+/* =========================================
+   GLOBAL RESET
+========================================= */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  @apply m-0 overflow-x-hidden bg-mesa-bg font-sans text-mesa-text;
+
+  background: var(--bg);
+  color: var(--text);
+
+  font-family: "DM Sans", sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: "DM Sans", sans-serif;
+}
+
+.serif {
+  font-family: "Cormorant Garamond", serif;
+}
+
+/* =========================================
+   SCROLLBAR
+========================================= */
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+/* =========================================
+   CURSOR
+========================================= */
+
+.grab {
+  cursor: grab;
+}
+
+.grab:active {
+  cursor: grabbing;
+}
+
+/* =========================================
+   ANIMATIONS
+========================================= */
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes glowPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(212, 170, 90, 0.12);
+  }
+
+  50% {
+    box-shadow: 0 0 36px rgba(212, 170, 90, 0.28);
+  }
+}
+
+@keyframes modalIn {
+  from {
+    transform: scale(0.94);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* =========================================
+   ANIMATION HELPERS
+========================================= */
+
+.anim-fadeUp {
+  animation: fadeUp 0.55s ease both;
+}
+
+.anim-glow {
+  animation: glowPulse 3s ease infinite;
+}
+
+.anim-pulse {
+  animation: pulse 1.4s ease infinite;
+}
+
+/* =========================================
+   COMPONENTS
+========================================= */
+
+@layer components {
+
+  /* LOGIN */
+
+  .login-screen {
+    @apply fixed inset-0 z-[999] flex items-center justify-center;
+    background: linear-gradient(160deg, #1a1308 0%, #0a0906 60%);
+  }
+
+  .login-box {
+    @apply relative z-[2] w-full max-w-[440px] rounded-3xl border px-12 py-12;
+
+    border-color: var(--border);
+    background: var(--card);
+
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .login-title {
+    @apply mb-1 text-center text-[32px] font-light text-mesa-cream serif;
+  }
+
+  .login-sub {
+    @apply mb-9 text-center text-xs uppercase tracking-[2px] text-mesa-muted;
+  }
+
+  /* BUTTONS */
+
+  .btn-primary {
+    @apply inline-flex items-center gap-2 rounded-[11px] border-0 px-5 py-3 text-[13px] font-medium transition hover:opacity-90;
+
+    background: linear-gradient(135deg, var(--gold), var(--accent));
+
+    color: var(--bg);
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 rounded-[11px] border px-4 py-2.5 text-[13px] transition;
+
+    border-color: var(--border);
+
+    background: var(--gold-dim);
+
+    color: var(--text);
+  }
+
+  /* CARD */
+
+  .card {
+    @apply rounded-[14px] border;
+
+    border-color: var(--border);
+
+    background: var(--card);
+  }
+
+  .stat-card {
+    @apply card px-5 py-[18px];
+
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .stat-value {
+    @apply text-4xl leading-none serif;
+
+    color: var(--cream);
+  }
+
+  /* TABLE */
+
+  .table {
+    @apply w-full border-collapse;
+  }
+
+  .table th {
+    @apply border-b px-4 py-3 text-left text-[10px] uppercase tracking-[2px];
+
+    border-color: var(--border);
+
+    color: var(--muted);
+  }
+
+  .table td {
+    @apply px-4 py-[13px] text-[13px];
+
+    color: var(--text);
+  }
+
+  /* TOAST */
+
+  .toast {
+    @apply fixed bottom-7 right-7 z-[1000] flex max-w-[340px] items-center gap-3 rounded-[14px] border px-5 py-3.5 text-[13px] shadow-2xl;
+
+    border-color: var(--border);
+
+    background: var(--card);
+
+    color: var(--text);
+
+    animation: fadeUp 0.3s ease;
+  }
+
+  .toast.success {
+    background: rgba(74, 154, 111, 0.1);
+  }
+
+  .toast.error {
+    background: rgba(201, 64, 64, 0.1);
+  }
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1200px) {
+
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .charts-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@keyframes popup {
+  0% {
+    opacity: 0;
+    transform: scale(.9) translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
