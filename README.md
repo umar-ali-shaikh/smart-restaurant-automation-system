@@ -237,3 +237,5 @@ Restaurant-Automation
     ├─ README.md
     └─ Smart Restaurant Automation Features.txt
 
+#   s m a r t - r e s t a u r a n t - a u t o m a t i o n - s y s t e m  
+ 
