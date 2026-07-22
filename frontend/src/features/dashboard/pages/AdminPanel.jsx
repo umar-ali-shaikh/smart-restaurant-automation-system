@@ -1,4 +1,5 @@
 import { lazy, useEffect, useMemo, useState, memo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 
 import NotificationStack from "../../../components/common/NotificationStack";
 import Navbar from "../../../components/layout/Navbar";
@@ -27,6 +28,7 @@ const MobilePanelSwitch = memo(function MobilePanelSwitch({
   open,
   onClose,
   onChange,
+  user,
 }) {
   return (
     <>
@@ -50,11 +52,11 @@ const MobilePanelSwitch = memo(function MobilePanelSwitch({
           {[
             ["admin", "⚙   Admin Panel"],
             ["kitchen", "🍽   Kitchen Panel"],
-          ].map(([id, label]) => (
+          ].filter(() => user?.role === "admin").map(([id, label]) => (
             <button
               key={id}
               onClick={() => {
-                onChange("admin");
+                onChange(id);
                 onClose();
               }}
               className={`rounded-xl px-4 py-3 text-left text-sm font-medium transition-all duration-200 ${
@@ -85,6 +87,7 @@ export default function AdminPanel() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [adminTab, setAdminTab] = useState("dashboard");
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [activePage, setActivePage] = useState("analytics");
   const [toast, setToast] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -227,7 +230,11 @@ export default function AdminPanel() {
         activeTab={activeTab}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        onChange={setActiveTab}
+        onChange={(panel) => {
+          setActiveTab(panel);
+          navigate(panel === "kitchen" ? "/kitchen" : "/admin");
+        }}
+        user={user}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
