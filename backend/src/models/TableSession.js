@@ -10,7 +10,7 @@ const tableSessionSchema = new mongoose.Schema(
 
     customer: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Customer",
+      ref: "User",
       required: true,
     },
 
@@ -32,6 +32,24 @@ const tableSessionSchema = new mongoose.Schema(
     lastSeen: {
       type: Date,
       default: Date.now,
+    },
+
+    lastActivityAt: {
+      type: Date,
+      default: Date.now,
+      index: true,
+    },
+
+    totalRevenue: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    orderCount: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
 
     socketId: {

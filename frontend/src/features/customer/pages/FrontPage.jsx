@@ -258,7 +258,7 @@ export default function FrontPage() {
 
       {/* ADMIN PORTAL TRIGGER */}
       <button
-        onClick={() => navigate("/login")}
+        onClick={() => navigate("/admin/login")}
         className="fixed top-5 right-6 z-[999] px-5 py-2.5 rounded-full bg-gradient-to-r from-[#d4aa5a] to-[#b8923f] text-black text-sm font-semibold shadow-xl cursor-pointer"
       >
         Admin Portal

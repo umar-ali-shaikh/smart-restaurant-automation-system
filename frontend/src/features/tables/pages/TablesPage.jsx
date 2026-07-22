@@ -21,11 +21,6 @@ export default function TablesPage({ tables, setTables, showToast }) {
 
       // Listen for instant updates from backend scan tracking pipeline
       socket.on("tableUpdated", (updatedTableEvent) => {
-        console.log(
-          "Real-time table update received via WebSocket on Admin Panel:",
-          updatedTableEvent,
-        );
-
         setTables((prevTables) =>
           prevTables.map((item) => {
             const identifier = item._id || item.id;
@@ -104,6 +99,18 @@ export default function TablesPage({ tables, setTables, showToast }) {
 
     setTables(tables.filter((table) => table.id !== id && table._id !== id));
     showToast("Table deleted successfully", "success");
+  };
+
+  const release = async (table) => {
+    const customer = table.currentSession?.customer?.name || "this guest";
+    if (!confirm(`Release Table ${table.tableNumber} occupied by ${customer}?`)) return;
+    await tableService.release(table.tableNumber);
+    setTables((current) => current.map((item) =>
+      (item.id || item._id) === (table.id || table._id)
+        ? { ...item, status: "available", currentSession: null, occupiedBy: null, occupiedAt: null }
+        : item,
+    ));
+    showToast(`Table ${table.tableNumber} released`, "success");
   };
 
   /* ======================================
@@ -314,6 +321,12 @@ export default function TablesPage({ tables, setTables, showToast }) {
                 </span>
               </p>
 
+              {table.currentSession?.customer?.name && (
+                <div className="mt-3 text-xs text-[var(--cream)]">
+                  Guest: {table.currentSession.customer.name}
+                </div>
+              )}
+
               <div
                 className={`
                   mt-4
@@ -428,6 +441,14 @@ export default function TablesPage({ tables, setTables, showToast }) {
                         >
                           📱 View QR
                         </button>
+                        {!isAvailable && (
+                          <button
+                            onClick={(event) => { event.stopPropagation(); release(table); }}
+                            className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-200 hover:bg-amber-500/20 cursor-pointer transition-all"
+                          >
+                            Release
+                          </button>
+                        )}
                         <button
                           onClick={() => cycle(targetId)}
                           className="rounded-xl border border-[var(--border)] bg-[var(--card2)] px-3 py-2 hover:border-[var(--gold)] cursor-pointer transition-all"

@@ -7,9 +7,13 @@ export function getAllowedOrigins() {
     .filter(Boolean);
 }
 
+export function isTrustedOrigin(origin) {
+  return Boolean(origin && getAllowedOrigins().includes(origin.replace(/\/$/, "")));
+}
+
 export function isAllowedOrigin(origin, callback) {
   // Requests without an Origin header include health checks and server-to-server calls.
-  if (!origin || getAllowedOrigins().includes(origin.replace(/\/$/, ""))) {
+  if (!origin || isTrustedOrigin(origin)) {
     return callback(null, true);
   }
 

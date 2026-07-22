@@ -1,14 +1,16 @@
 import express from "express";
 import { adminLogin, kitchenLogin, getCurrentUser, logout, refreshSession } from "../controllers/authController.js";
-import { protect } from "../middleware/authMiddleware.js";
+import { requireStaffAuth } from "../middleware/authMiddleware.js";
 import { authLimiter } from "../middleware/rateLimiter.js";
+import { validateRequest } from "../middleware/validateRequest.js";
+import { adminLoginSchema, kitchenLoginSchema } from "../shared/validation/schemas.js";
 const router = express.Router();
 
 
-router.post("/admin/login", authLimiter, adminLogin);
-router.post("/kitchen/login", authLimiter, kitchenLogin);
-router.get("/me", protect, getCurrentUser);
-router.post("/refresh", protect, refreshSession);
-router.post("/logout", protect, logout);
+router.post("/admin/login", authLimiter, validateRequest({ body: adminLoginSchema }), adminLogin);
+router.post("/kitchen/login", authLimiter, validateRequest({ body: kitchenLoginSchema }), kitchenLogin);
+router.get("/me", requireStaffAuth, getCurrentUser);
+router.post("/refresh", requireStaffAuth, refreshSession);
+router.post("/logout", requireStaffAuth, logout);
 
 export default router;

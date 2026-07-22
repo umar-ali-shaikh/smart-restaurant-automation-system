@@ -12,8 +12,12 @@ import {
 import {
   protect,
   adminOnly,
-  optionalProtect,
+  optionalStaffAuth,
+  requireGuestAuth,
 } from "../middleware/authMiddleware.js";
+import { validateObjectId } from "../middleware/validateObjectId.js";
+import { validateRequest } from "../middleware/validateRequest.js";
+import { createReviewSchema } from "../shared/validation/schemas.js";
 
 const router = express.Router();
 
@@ -21,9 +25,9 @@ const router = express.Router();
    PUBLIC
 =========================== */
 
-router.get("/", optionalProtect, getReviews);
+router.get("/", optionalStaffAuth, getReviews);
 
-router.post("/", optionalProtect, addReview);
+router.post("/", validateRequest({ body: createReviewSchema }), requireGuestAuth, addReview);
 
 /* ===========================
    ADMIN
@@ -31,12 +35,12 @@ router.post("/", optionalProtect, addReview);
 
 router.get("/analytics", protect, adminOnly, getReviewAnalytics);
 
-router.put("/:id", protect, adminOnly, updateReview);
+router.put("/:id", validateObjectId(), protect, adminOnly, updateReview);
 
-router.patch("/:id/status", protect, adminOnly, moderateReview);
+router.patch("/:id/status", validateObjectId(), protect, adminOnly, moderateReview);
 
-router.patch("/:id/reply", protect, adminOnly, replyToReview);
+router.patch("/:id/reply", validateObjectId(), protect, adminOnly, replyToReview);
 
-router.delete("/:id", protect, adminOnly, deleteReview);
+router.delete("/:id", validateObjectId(), protect, adminOnly, deleteReview);
 
 export default router;

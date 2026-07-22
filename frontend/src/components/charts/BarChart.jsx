@@ -1,8 +1,13 @@
 import { useMemo } from "react";
 import { rupee } from "../../utils/format";
 
-export default function BarChart({ mode = "daily", orders = [] }) {
+export default function BarChart({ mode = "daily", orders = [], chartData: inputChartData = null, emptyMessage = "No revenue exists for the selected period." }) {
   const chartData = useMemo(() => {
+    if (Array.isArray(inputChartData)) {
+      return inputChartData
+        .map((item) => ({ label: item.label, value: Number(item.revenue ?? item.value ?? 0), orders: Number(item.orders || 0) }))
+        .filter((item) => Number.isFinite(item.value));
+    }
     const grouped = {};
 
     orders.forEach((order) => {
@@ -38,14 +43,18 @@ export default function BarChart({ mode = "daily", orders = [] }) {
       label,
       value,
     }));
-  }, [orders, mode]);
+  }, [inputChartData, orders, mode]);
 
   const max = Math.max(...chartData.map((item) => item.value), 1);
+
+  if (import.meta.env.DEV) {
+    console.debug("[analytics] final Revenue Overview chart props", { mode, chartData });
+  }
 
   if (!chartData.length) {
     return (
       <div className="flex h-[180px] items-center justify-center text-sm text-mesa-muted">
-        No Chart Data Available
+        {emptyMessage}
       </div>
     );
   }
@@ -59,11 +68,13 @@ export default function BarChart({ mode = "daily", orders = [] }) {
             key={`${mode}-${index}`}
           >
             <div
-              className="bar"
+              className="min-h-1 w-full rounded-t-lg bg-[var(--gold)] shadow-[0_0_18px_rgba(212,170,90,0.28)] transition-all duration-500 hover:bg-[#f1c66e]"
               style={{
                 height: `${Math.round((item.value / max) * 130)}px`,
               }}
               data-val={rupee(Math.round(item.value))}
+              title={`${item.label}: ${rupee(Math.round(item.value))}`}
+              aria-label={`${item.label}: ${rupee(Math.round(item.value))}`}
             />
           </div>
         ))}

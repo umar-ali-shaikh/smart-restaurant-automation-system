@@ -1,6 +1,5 @@
 import express from "express";
 import {
-  createCategory,
   toggleAvailability,
   updateMenuItem,
   deleteMenuItem,
@@ -12,6 +11,7 @@ import {
   getAdminStats,
   createMenuItem,
 } from "../controllers/menuController.js";
+import { createCategory as createCategoryResource } from "../controllers/categoryController.js";
 
 import {
   protect,
@@ -20,6 +20,7 @@ import {
 } from "../middleware/authMiddleware.js";
 
 import upload from "../middleware/upload.js";
+import { validateObjectId } from "../middleware/validateObjectId.js";
 
 const router = express.Router();
 
@@ -36,24 +37,30 @@ router.post(
   (req, res, next) => {
     upload.single("image")(req, res, (err) => {
       if (err) {
-        console.error("UPLOAD ERROR:", err);
-        return res.status(500).json({
+        console.error("Menu image upload failed:", err.message);
+        return res.status(err.statusCode || (err.code?.startsWith("LIMIT") ? 400 : 500)).json({
           success: false,
           message: err.message,
         });
       }
 
-      console.log("UPLOAD SUCCESS");
       next();
     });
   },
   createMenuItem
 );
 
-router.post("/category", protect, adminOnly, createCategory);
+router.post(
+  "/category",
+  protect,
+  adminOnly,
+  upload.single("image"),
+  createCategoryResource,
+);
 
 router.patch(
   "/item/:id/toggle",
+  validateObjectId(),
   protect,
   adminOnly,
   toggleAvailability
@@ -61,6 +68,7 @@ router.patch(
 
 router.put(
   "/item/:id",
+  validateObjectId(),
   protect,
   adminOnly,
   upload.single("image"),
@@ -69,6 +77,7 @@ router.put(
 
 router.delete(
   "/item/:id",
+  validateObjectId(),
   protect,
   adminOnly,
   deleteMenuItem
@@ -87,10 +96,11 @@ router.put(
 
 router.get("/", optionalProtect, getMenuItems);
 
-router.get("/item/:id", optionalProtect, getMenuItemById);
+router.get("/item/:id", validateObjectId(), optionalProtect, getMenuItemById);
 
 router.get(
   "/category/:categoryId",
+  validateObjectId("categoryId"),
   optionalProtect,
   getItemsByCategory
 );

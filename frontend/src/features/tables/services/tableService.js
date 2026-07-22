@@ -67,4 +67,12 @@ export const tableService = {
         ),
       ),
     ),
+
+  release: async (tableNumber) =>
+    normalizeTable(
+      unwrapData(await apiClient.put(`${API_ENDPOINTS.table}/release/${tableNumber}`)),
+    ),
+
+  getHistory: async (tableNumber) =>
+    unwrapData(await apiClient.get(`${API_ENDPOINTS.table}/history/${tableNumber}`)),
 };

@@ -3,11 +3,11 @@ import { loginUser } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/authContext";
 
-export default function LoginPage() {
+export default function LoginPage({ initialRole = "admin" }) {
   const navigate = useNavigate();
   const { login: setAuthUser } = useAuth();
 
-  const [role, setRole] = useState("admin");
+  const [role, setRole] = useState(initialRole);
 
   const [email, setEmail] = useState("");
   const [employeeId, setEmployeeId] = useState("");
@@ -56,7 +56,6 @@ export default function LoginPage() {
         navigate("/kitchen");
       }
     } catch (error) {
-      console.log(error);
       setError(error.message || "Invalid credentials");
     } finally {
       setLoading(false);

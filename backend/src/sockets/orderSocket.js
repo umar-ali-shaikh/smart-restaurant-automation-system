@@ -1,98 +1,99 @@
 import { Server } from "socket.io";
-import Table from "../models/Table.js"; // Sahi path match kar diya hai schema ke mutabik
-import { isAllowedOrigin } from "../config/cors.js";
+import Admin from "../models/Admin.js";
+import Order from "../models/Order.js";
+import User from "../models/Users.js";
+import { isAllowedOrigin, isTrustedOrigin } from "../config/cors.js";
+import { AUTH_COOKIE_NAME, verifySessionToken } from "../config/auth.js";
 
 let io;
-const tableTimeouts = {}; // Active 10-minute countdowns ko track karne ke liye tracking global instance
+
+function readCookies(cookieHeader = "") {
+  return cookieHeader.split(";").reduce((cookies, entry) => {
+    const [name, ...value] = entry.trim().split("=");
+    if (name) cookies[name] = decodeURIComponent(value.join("="));
+    return cookies;
+  }, {});
+}
+
+async function attachActor(socket) {
+  const cookies = readCookies(socket.request.headers.cookie);
+  const authToken = cookies[AUTH_COOKIE_NAME];
+
+  if (authToken) {
+    try {
+      const payload = verifySessionToken(authToken);
+      const staff = await Admin.findOne({
+        _id: payload.sub,
+        sessionToken: payload.sid,
+        sessionExpiresAt: { $gt: new Date() },
+      }).select("_id role");
+
+      if (staff) {
+        socket.data.staff = staff;
+        return;
+      }
+    } catch {
+      // An invalid staff cookie does not prevent public customer socket usage.
+    }
+  }
+
+  if (cookies.guestToken) {
+    const guest = await User.findOne({
+      sessionToken: cookies.guestToken,
+      sessionExpiresAt: { $gt: new Date() },
+      isActive: true,
+    }).select("_id");
+
+    if (guest) socket.data.guest = guest;
+  }
+}
+
+function isOperationsStaff(socket) {
+  return ["admin", "kitchen"].includes(socket.data.staff?.role);
+}
 
 export const initSocket = (server) => {
   io = new Server(server, {
-    cors: {
-      origin: isAllowedOrigin,
-      credentials: true,
+    cors: { origin: isAllowedOrigin, credentials: true },
+    allowRequest: (request, callback) => {
+      const origin = request.headers.origin;
+      callback(null, !origin || isTrustedOrigin(origin));
     },
   });
 
+  io.use(async (socket, next) => {
+    try {
+      await attachActor(socket);
+      next();
+    } catch (error) {
+      next(error);
+    }
+  });
+
   io.on("connection", (socket) => {
-    console.log("✅ SOCKET CONNECTED:", socket.id);
-
-    // ======================================
-    //     DEFAULT CHANNELS LOGIC
-    // ======================================
     socket.on("joinAdmin", () => {
-      socket.join("adminRoom");
+      if (socket.data.staff?.role === "admin") socket.join("adminRoom");
     });
 
-    socket.on("joinUser", (userId) => {
-      if (userId) socket.join(userId);
+    socket.on("joinOperations", () => {
+      if (isOperationsStaff(socket)) socket.join("operationsRoom");
     });
 
-    socket.on("joinOrder", (orderId) => {
-      if (orderId) socket.join(`order:${orderId}`);
+    socket.on("joinOrder", async (orderId) => {
+      if (!isOperationsStaff(socket) && !socket.data.guest) return;
+
+      const order = await Order.findById(orderId).select("user");
+      if (!order) return;
+
+      const isOwner = order.user.toString() === socket.data.guest?._id?.toString();
+      if (isOperationsStaff(socket) || isOwner) socket.join(`order:${orderId}`);
     });
 
-    socket.on("leaveOrder", (orderId) => {
-      if (orderId) socket.leave(`order:${orderId}`);
-    });
+    socket.on("leaveOrder", (orderId) => socket.leave(`order:${orderId}`));
 
-    // ======================================
-    // 🔥 NEW: DYNAMIC TABLE PRESENCE CONTROLLER
-    // ======================================
-    socket.on("joinTable", async ({ tableNumber }) => {
-      socket.tableNumber = tableNumber;
-      console.log(`📡 Customer active stream established on Table #${tableNumber}`);
-
-      // Agar is table ka pehle se koi 10-minute countdown chal raha tha, toh use cancel kar do
-      if (tableTimeouts[tableNumber]) {
-        clearTimeout(tableTimeouts[tableNumber]);
-        delete tableTimeouts[tableNumber];
-        console.log(`⏰ Inactivity timeout cleared for Table #${tableNumber} (Customer re-engaged)`);
-      }
-
-      try {
-        // Table ko instantly Occupied mark karo database mein
-        const table = await Table.findOneAndUpdate(
-          { tableNumber: parseInt(tableNumber, 10) },
-          { status: "Occupied" },
-          { new: true }
-        );
-
-        if (table) {
-          // Pure network par broadcast event emit karo admin updates sync karne ke liye
-          io.emit("tableUpdated", { tableNumber: table.tableNumber, status: "Occupied", data: table });
-        }
-      } catch (err) {
-        console.error("Error updates table buffer on joinTable socket event:", err);
-      }
-    });
-
-    // ======================================
-    // 🔥 NEW: DISCONNECT PRESENCE COUNTDOWN
-    // ======================================
-    socket.on("disconnect", () => {
-      const tableNumber = socket.tableNumber;
-      if (!tableNumber) return;
-
-      console.log(`🔌 User disconnected from Table #${tableNumber}. 10-Minute countdown activated...`);
-
-      // 10 Minutes Timer Initialization -> (10 mins * 60 secs * 1000 ms)
-      tableTimeouts[tableNumber] = setTimeout(async () => {
-        try {
-          const table = await Table.findOneAndUpdate(
-            { tableNumber: parseInt(tableNumber, 10) },
-            { status: "Available" },
-            { new: true }
-          );
-
-          if (table) {
-            io.emit("tableUpdated", { tableNumber: table.tableNumber, status: "Available", data: table });
-            console.log(`⏰ Table #${tableNumber} auto-released successfully due to 10 minutes inactivity.`);
-          }
-          delete tableTimeouts[tableNumber];
-        } catch (err) {
-          console.error("Error dynamic auto-releasing inactive table indices:", err);
-        }
-      }, 10 * 60 * 1000);
+    socket.on("joinTable", ({ tableNumber } = {}) => {
+      if (!socket.data.guest || !Number.isInteger(Number(tableNumber))) return;
+      socket.join(`table:${Number(tableNumber)}`);
     });
   });
 

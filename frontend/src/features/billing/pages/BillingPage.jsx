@@ -1,25 +1,22 @@
-import { createElement, useCallback, useMemo, useState, memo } from "react";
+import { createElement, lazy, useCallback, useMemo, useState, memo } from "react";
 import { format } from "date-fns";
 import { CalendarClock, Flame, ReceiptText, Utensils } from "lucide-react";
-import AnalyticsCards from "../../../components/analytics/AnalyticsCards";
+const AnalyticsCards = lazy(() => import("../../../components/analytics/AnalyticsCards"));
 import ExportMenu from "../../../components/analytics/ExportMenu";
 import FilterBar from "../../../components/analytics/FilterBar";
-import OrdersBarChart from "../../../components/analytics/OrdersBarChart";
-import RevenueAreaChart from "../../../components/analytics/RevenueAreaChart";
-import RevenueTrendChart from "../../../components/analytics/RevenueTrendChart";
-import StatusPieChart from "../../../components/analytics/StatusPieChart";
-import TableUsageChart from "../../../components/analytics/TableUsageChart";
-import TopSellingChart from "../../../components/analytics/TopSellingChart";
-import TransactionTable from "../../../components/analytics/TransactionTable";
+const OrdersBarChart = lazy(() => import("../../../components/analytics/OrdersBarChart"));
+const RevenueAreaChart = lazy(() => import("../../../components/analytics/RevenueAreaChart"));
+const RevenueTrendChart = lazy(() => import("../../../components/analytics/RevenueTrendChart"));
+const StatusPieChart = lazy(() => import("../../../components/analytics/StatusPieChart"));
+const TableUsageChart = lazy(() => import("../../../components/analytics/TableUsageChart"));
+const TopSellingChart = lazy(() => import("../../../components/analytics/TopSellingChart"));
+const TransactionTable = lazy(() => import("../../../components/analytics/TransactionTable"));
 import {
   buildAnalytics,
   buildTransactionRows,
   filterOrdersByDate,
   getDateRange,
 } from "../../../utils/analytics";
-import { exportCsv } from "../../../utils/exportCsv";
-import { exportExcel } from "../../../utils/exportExcel";
-import { exportPdf } from "../../../utils/exportPdf";
 import { rupee } from "../../../utils/format";
 
 function DashboardSkeleton() {
@@ -68,16 +65,10 @@ function BillingPage({ orders = [], showToast }) {
     end: format(new Date(), "yyyy-MM-dd"),
   });
 
-  // CRITICAL FIX: Array references change constantly on parent state updates.
-  // Hum length aur update indicators ko track karenge text structure ke through loop prevent karne ke liye.
-  const ordersKey = useMemo(() => {
-    if (!Array.isArray(orders)) return "empty";
-    return `${orders.length}-${orders[0]?.updatedAt || orders[0]?.id || ""}`;
-  }, [orders]);
-
-  const safeOrders = useMemo(() => {
-    return Array.isArray(orders) ? orders : [];
-  }, [ordersKey]); // Only recreates array if items actually change
+  const safeOrders = useMemo(
+    () => (Array.isArray(orders) ? orders : []),
+    [orders],
+  );
 
   const dateRange = useMemo(
     () => getDateRange(filter, customRange),
@@ -111,17 +102,20 @@ function BillingPage({ orders = [], showToast }) {
     [showToast],
   );
 
-  const handleCsvExport = useCallback(() => {
+  const handleCsvExport = useCallback(async () => {
+    const { exportCsv } = await import("../../../utils/exportCsv");
     exportCsv("mesa-billing-report.csv", transactionRows);
     notifyExport("CSV");
   }, [notifyExport, transactionRows]);
 
-  const handleExcelExport = useCallback(() => {
+  const handleExcelExport = useCallback(async () => {
+    const { exportExcel } = await import("../../../utils/exportExcel");
     exportExcel("mesa-billing-report.xlsx", transactionRows);
     notifyExport("Excel");
   }, [notifyExport, transactionRows]);
 
-  const handlePdfExport = useCallback(() => {
+  const handlePdfExport = useCallback(async () => {
+    const { exportPdf } = await import("../../../utils/exportPdf");
     exportPdf(
       "mesa-billing-report.pdf",
       transactionRows,

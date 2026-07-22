@@ -8,7 +8,6 @@ const tabs = [
   "staff",
   "billing",
   "reviews",
-  "reports",
 ];
 
 export default function AdminTabs({ activeTab, onChange }) {

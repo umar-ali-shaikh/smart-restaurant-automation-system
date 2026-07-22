@@ -5,7 +5,7 @@ import {
   getTable,
   updateTable,
   deleteTable,
-  bookTableOnScan, leaveTable
+  bookTableOnScan, leaveTable, adminReleaseTable, getTableSessionHistory
 } from "../controllers/tableController.js";
 
 import Table from "../models/Table.js";
@@ -14,7 +14,9 @@ import {
   protect,
   adminOnly,
   optionalProtect,
+  requireGuestAuth,
 } from "../middleware/authMiddleware.js";
+import { validateObjectId } from "../middleware/validateObjectId.js";
 
 const router = express.Router();
 
@@ -23,7 +25,7 @@ const router = express.Router();
 ====================================== */
 
 // Scan QR & Book Table
-router.put("/scan-book/:tableNumber", bookTableOnScan);
+router.put("/scan-book/:tableNumber", requireGuestAuth, bookTableOnScan);
 
 // Get table by table number
 router.get("/number/:tableNumber", optionalProtect, async (req, res) => {
@@ -55,10 +57,12 @@ router.get("/number/:tableNumber", optionalProtect, async (req, res) => {
 router.get("/", optionalProtect, getTables);
 
 // Get table by MongoDB ID
-router.get("/:id", optionalProtect, getTable);
+router.get("/:id", validateObjectId(), optionalProtect, getTable);
 
 
-router.put("/leave/:tableNumber", optionalProtect, leaveTable);
+router.put("/leave/:tableNumber", requireGuestAuth, leaveTable);
+router.put("/release/:tableNumber", protect, adminOnly, adminReleaseTable);
+router.get("/history/:tableNumber", protect, adminOnly, getTableSessionHistory);
 
 /* ======================================
    ADMIN ONLY
@@ -66,9 +70,9 @@ router.put("/leave/:tableNumber", optionalProtect, leaveTable);
 
 router.post("/", protect, adminOnly, createTable);
 
-router.put("/:id", protect, adminOnly, updateTable);
+router.put("/:id", validateObjectId(), protect, adminOnly, updateTable);
 
-router.delete("/:id", protect, adminOnly, deleteTable);
+router.delete("/:id", validateObjectId(), protect, adminOnly, deleteTable);
 
 
 

@@ -34,4 +34,7 @@ const menuItemSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
+menuItemSchema.index({ category: 1, isAvailable: 1 });
+menuItemSchema.index({ createdAt: -1 });
+
 export default mongoose.model("MenuItem", menuItemSchema);

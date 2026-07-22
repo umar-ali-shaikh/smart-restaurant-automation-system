@@ -7,6 +7,7 @@ import {
 } from "../controllers/categoryController.js";
 import { adminOnly, protect, optionalProtect } from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
+import { validateObjectId } from "../middleware/validateObjectId.js";
 
 const router = express.Router();
 
@@ -26,6 +27,7 @@ router.post(
 // Update category
 router.put(
   "/:id",
+  validateObjectId(),
   protect,
   adminOnly,
   upload.single("image"),
@@ -35,6 +37,7 @@ router.put(
 // Delete category
 router.delete(
   "/:id",
+  validateObjectId(),
   protect,
   adminOnly,
   deleteCategory

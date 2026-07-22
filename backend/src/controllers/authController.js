@@ -8,8 +8,6 @@ import {
 } from "../config/auth.js";
 
 
-const publicFields = "_id name employeeId username email role color online createdAt updatedAt";
-
 function toAuthUser(user) {
   return {
     _id: user._id,

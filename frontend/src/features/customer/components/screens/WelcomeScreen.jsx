@@ -39,8 +39,8 @@ export default function WelcomeScreen({ onExplore }) {
     const loadTables = async () => {
       try {
         setTables(await tableService.getAll());
-      } catch (err) {
-        console.log(err);
+      } catch {
+        setTables([]);
       }
     };
 

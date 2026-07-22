@@ -1,11 +1,18 @@
 import crypto from "crypto";
 import User from "../models/Users.js";
 
+const publicGuest = (user) => {
+    const value = user.toObject ? user.toObject() : { ...user };
+    delete value.sessionToken;
+    delete value.sessionExpiresAt;
+    return value;
+};
+
 export const updateGuestProfile = async (req, res) => {
     try {
         const { name, email } = req.body;
 
-        const user = req.user;
+        const user = req.guest;
 
         if (!user) {
             return res.status(401).json({
@@ -24,7 +31,7 @@ export const updateGuestProfile = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Profile updated successfully",
-            data: user,
+            data: publicGuest(user),
         });
     } catch (error) {
         console.error(error);
@@ -54,7 +61,7 @@ export const createGuestSession = async (req, res) => {
 
                 return res.status(200).json({
                     success: true,
-                    data: user,
+                    data: publicGuest(user),
                 });
             }
         }
@@ -69,14 +76,14 @@ export const createGuestSession = async (req, res) => {
 
         res.cookie("guestToken", guest.sessionToken, {
             httpOnly: true,
-            sameSite: "lax",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
             secure: process.env.NODE_ENV === "production",
             maxAge: 24 * 60 * 60 * 1000,
         });
 
         return res.status(201).json({
             success: true,
-            data: guest,
+            data: publicGuest(guest),
         });
     } catch (error) {
         console.error(error);

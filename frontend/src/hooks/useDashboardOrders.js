@@ -100,7 +100,7 @@ export function useDashboardOrders() {
       );
     };
 
-    socket.emit("joinAdmin");
+    socket.emit("joinOperations");
 
     socket.off("newOrder");
     socket.off("orderUpdated");
@@ -159,17 +159,20 @@ export function useDashboardOrders() {
     );
   }
 
-  function setOrders(nextOrders) {
-    if (!Array.isArray(nextOrders)) {
-      console.warn("setOrders expected an array:", nextOrders);
-      return;
-    }
+  function setOrders(nextOrdersOrUpdater) {
+    setOrdersState((currentOrders) => {
+      const nextOrders = typeof nextOrdersOrUpdater === "function"
+        ? nextOrdersOrUpdater(currentOrders)
+        : nextOrdersOrUpdater;
 
-    knownOrderIds.current = new Set(
-      nextOrders.map((order) => order.id)
-    );
+      if (!Array.isArray(nextOrders)) {
+        console.warn("setOrders expected an array or updater returning an array:", nextOrders);
+        return currentOrders;
+      }
 
-    setOrdersState(nextOrders);
+      knownOrderIds.current = new Set(nextOrders.map((order) => order.id));
+      return nextOrders;
+    });
   }
 
   return {

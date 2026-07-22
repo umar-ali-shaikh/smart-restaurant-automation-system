@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import Review from "../models/Review.js";
+import Order from "../models/Order.js";
+import { getReviewAnalyticsData } from "../modules/reviews/reviewAnalyticsService.js";
 
 const parseBoolean = (value) => value === true || value === "true" || value === "1";
 
@@ -105,6 +107,27 @@ export const addReview = async (req, res) => {
   try {
     const payload = buildReviewPayload(req.body);
 
+    if (!payload.orderId) {
+      return res.status(400).json({ success: false, message: "A completed order is required to submit a review." });
+    }
+
+    const order = await Order.findOne({
+      _id: payload.orderId,
+      user: req.guest._id,
+      status: "served",
+    }).select("tableNo");
+
+    if (!order) {
+      return res.status(403).json({ success: false, message: "You can only review your own served orders." });
+    }
+
+    payload.tableNo = order.tableNo;
+    payload.status = "pending";
+    if (!payload.anonymous) {
+      payload.customerName = req.guest.name || "Guest";
+      payload.customerEmail = req.guest.email || "";
+    }
+
     // Validate required rating
     if (payload.rating === undefined) {
       return res.status(400).json({
@@ -126,7 +149,7 @@ export const addReview = async (req, res) => {
     // Emit socket event if Socket.IO is available
     const io = req.app.get("io");
     if (io) {
-      io.emit("review:new", review);
+      io.to("adminRoom").emit("review:new", review);
     }
 
     return res.status(201).json({
@@ -207,129 +230,12 @@ export const getReviews = async (req, res) => {
 
 export const getReviewAnalytics = async (req, res) => {
   try {
-    const match = getDateMatch(req.query);
-
-    const reviews = await Review.find(match).lean();
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    monthStart.setHours(0, 0, 0, 0);
-
-    const itemMap = new Map();
-
-    const ratingDistribution = {
-      1: 0,
-      2: 0,
-      3: 0,
-      4: 0,
-      5: 0,
-    };
-
-    let totalReviews = 0;
-    let totalRating = 0;
-
-    let todayReviews = 0;
-    let monthlyReviews = 0;
-
-    let approvedReviews = 0;
-    let pendingReviews = 0;
-    let rejectedReviews = 0;
-
-    for (const review of reviews) {
-      totalReviews++;
-      totalRating += review.rating || 0;
-
-      if (ratingDistribution[review.rating] !== undefined) {
-        ratingDistribution[review.rating]++;
-      }
-
-      const createdAt = new Date(review.createdAt);
-
-      if (createdAt >= today) {
-        todayReviews++;
-      }
-
-      if (createdAt >= monthStart) {
-        monthlyReviews++;
-      }
-
-      switch (review.status) {
-        case "approved":
-          approvedReviews++;
-          break;
-
-        case "pending":
-          pendingReviews++;
-          break;
-
-        case "rejected":
-          rejectedReviews++;
-          break;
-      }
-
-      if (review.selectedItems?.length) {
-        for (const item of review.selectedItems) {
-          const key = item.name || "Unnamed Item";
-
-          const entry = itemMap.get(key) || {
-            name: key,
-            count: 0,
-            totalRating: 0,
-          };
-
-          entry.count++;
-          entry.totalRating += review.rating;
-
-          itemMap.set(key, entry);
-        }
-      }
-    }
-
-    const topFoods = Array.from(itemMap.values())
-      .map((item) => ({
-        name: item.name,
-        count: item.count,
-        averageRating: Number(
-          (item.totalRating / item.count).toFixed(1)
-        ),
-      }))
-      .sort((a, b) => b.count - a.count);
+    const data = await getReviewAnalyticsData(getDateMatch(req.query));
 
     return res.status(200).json({
       success: true,
       message: "Review analytics fetched successfully.",
-      data: {
-        totalReviews,
-
-        averageRating: totalReviews
-          ? Number((totalRating / totalReviews).toFixed(1))
-          : 0,
-
-        todayReviews,
-
-        monthlyReviews,
-
-        approvedReviews,
-
-        pendingReviews,
-
-        rejectedReviews,
-
-        ratingDistribution: [
-          { rating: 1, count: ratingDistribution[1] },
-          { rating: 2, count: ratingDistribution[2] },
-          { rating: 3, count: ratingDistribution[3] },
-          { rating: 4, count: ratingDistribution[4] },
-          { rating: 5, count: ratingDistribution[5] },
-        ],
-
-        mostReviewedFood: topFoods[0] || null,
-
-        topReviewedFoods: topFoods.slice(0, 5),
-      },
+      data,
     });
   } catch (error) {
     console.error("Review Analytics Error:", error);

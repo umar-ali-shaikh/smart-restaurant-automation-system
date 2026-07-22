@@ -56,8 +56,6 @@ export default function TopBar({
       <button
         onClick={(e) => {
           e.stopPropagation();
-          console.log("Orders clicked");
-          console.log(onOrdersClick);
           onOrdersClick?.();
         }}
         style={{

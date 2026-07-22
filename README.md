@@ -383,3 +383,257 @@ GitHub: https://github.com/umar-ali-shaikh
 # ⭐ If you like this project
 
 Give this repository a ⭐ on GitHub.
+
+
+
+
+
+
+```
+Restaurant-Automation
+├─ .agents
+├─ backend
+│  ├─ package-lock.json
+│  ├─ package.json
+│  ├─ seedAdmin.js
+│  ├─ src
+│  │  ├─ config
+│  │  │  ├─ auth.js
+│  │  │  ├─ cloudinary.js
+│  │  │  ├─ cors.js
+│  │  │  ├─ db.js
+│  │  │  └─ env.js
+│  │  ├─ controllers
+│  │  │  ├─ authController.js
+│  │  │  ├─ categoryController.js
+│  │  │  ├─ menuController.js
+│  │  │  ├─ orderController.js
+│  │  │  ├─ reviewController.js
+│  │  │  ├─ staffController.js
+│  │  │  ├─ tableController.js
+│  │  │  └─ userController.js
+│  │  ├─ middleware
+│  │  │  ├─ authMiddleware.js
+│  │  │  ├─ errorMiddleware.js
+│  │  │  ├─ rateLimiter.js
+│  │  │  ├─ requestOriginMiddleware.js
+│  │  │  ├─ upload.js
+│  │  │  ├─ validateObjectId.js
+│  │  │  └─ validateRequest.js
+│  │  ├─ models
+│  │  │  ├─ Admin.js
+│  │  │  ├─ Category.js
+│  │  │  ├─ Employee.js
+│  │  │  ├─ MenuItem.js
+│  │  │  ├─ Order.js
+│  │  │  ├─ Review.js
+│  │  │  ├─ Table.js
+│  │  │  ├─ TableSession.js
+│  │  │  └─ Users.js
+│  │  ├─ modules
+│  │  │  ├─ menu
+│  │  │  │  └─ menuCatalogService.js
+│  │  │  ├─ orders
+│  │  │  │  ├─ orderPolicy.js
+│  │  │  │  └─ orderService.js
+│  │  │  └─ reviews
+│  │  │     └─ reviewAnalyticsService.js
+│  │  ├─ routes
+│  │  │  ├─ authRoutes.js
+│  │  │  ├─ categoryRoutes.js
+│  │  │  ├─ healthRoutes.js
+│  │  │  ├─ menuRoutes.js
+│  │  │  ├─ orderRoutes.js
+│  │  │  ├─ reviewRoutes.js
+│  │  │  ├─ staffRoutes.js
+│  │  │  ├─ tableRoutes.js
+│  │  │  └─ userRoutes.js
+│  │  ├─ server.js
+│  │  ├─ shared
+│  │  │  ├─ errors
+│  │  │  │  └─ AppError.js
+│  │  │  └─ validation
+│  │  │     └─ schemas.js
+│  │  └─ sockets
+│  │     └─ orderSocket.js
+│  └─ test
+│     ├─ orderPolicy.test.js
+│     └─ validation.test.js
+├─ docs
+│  ├─ ARCHITECTURE.md
+│  └─ DEPLOYMENT.md
+├─ frontend
+│  ├─ eslint.config.js
+│  ├─ index.html
+│  ├─ package-lock.json
+│  ├─ package.json
+│  ├─ postcss.config.js
+│  ├─ public
+│  │  └─ vite.svg
+│  ├─ README.md
+│  ├─ src
+│  │  ├─ api
+│  │  │  ├─ apiConfig.js
+│  │  │  ├─ client.js
+│  │  │  ├─ normalizers.js
+│  │  │  └─ socket.js
+│  │  ├─ app
+│  │  │  ├─ router
+│  │  │  │  ├─ AppRouter.jsx
+│  │  │  │  ├─ customerRoutes.jsx
+│  │  │  │  └─ staffRoutes.jsx
+│  │  │  └─ routes
+│  │  │     └─ paths.js
+│  │  ├─ App.jsx
+│  │  ├─ components
+│  │  │  ├─ analytics
+│  │  │  │  ├─ AnalyticsCards.jsx
+│  │  │  │  ├─ ExportMenu.jsx
+│  │  │  │  ├─ FilterBar.jsx
+│  │  │  │  ├─ OrdersBarChart.jsx
+│  │  │  │  ├─ RevenueAreaChart.jsx
+│  │  │  │  ├─ RevenueTrendChart.jsx
+│  │  │  │  ├─ StatusPieChart.jsx
+│  │  │  │  ├─ TableUsageChart.jsx
+│  │  │  │  ├─ TopSellingChart.jsx
+│  │  │  │  └─ TransactionTable.jsx
+│  │  │  ├─ charts
+│  │  │  │  ├─ BarChart.jsx
+│  │  │  │  └─ DonutChart.jsx
+│  │  │  ├─ common
+│  │  │  │  └─ NotificationStack.jsx
+│  │  │  └─ ui
+│  │  │     ├─ Modal.jsx
+│  │  │     └─ Toast.jsx
+│  │  ├─ context
+│  │  │  ├─ authContext.js
+│  │  │  └─ AuthProvider.jsx
+│  │  ├─ features
+│  │  │  ├─ analytics
+│  │  │  │  ├─ pages
+│  │  │  │  │  └─ AnalyticsPage.jsx
+│  │  │  │  └─ services
+│  │  │  │     └─ analyticsService.js
+│  │  │  ├─ auth
+│  │  │  │  ├─ components
+│  │  │  │  ├─ pages
+│  │  │  │  │  └─ LoginPage.jsx
+│  │  │  │  └─ services
+│  │  │  │     └─ authService.js
+│  │  │  ├─ billing
+│  │  │  │  └─ pages
+│  │  │  │     └─ BillingPage.jsx
+│  │  │  ├─ category
+│  │  │  │  ├─ components
+│  │  │  │  │  └─ CategoryModal.jsx
+│  │  │  │  ├─ pages
+│  │  │  │  │  └─ CategoryPage.jsx
+│  │  │  │  └─ services
+│  │  │  │     └─ categoryService.js
+│  │  │  ├─ customer
+│  │  │  │  ├─ components
+│  │  │  │  │  ├─ screens
+│  │  │  │  │  │  ├─ CuisineScreen.jsx
+│  │  │  │  │  │  ├─ FeedbackScreen.jsx
+│  │  │  │  │  │  ├─ LoadingScreen.jsx
+│  │  │  │  │  │  ├─ SuccessScreen.jsx
+│  │  │  │  │  │  ├─ WelcomeScreen.jsx
+│  │  │  │  │  │  └─ WorkflowScreen.jsx
+│  │  │  │  │  ├─ shared
+│  │  │  │  │  │  ├─ CartSheet.jsx
+│  │  │  │  │  │  ├─ FloatingBar.jsx
+│  │  │  │  │  │  ├─ KitchenToast.jsx
+│  │  │  │  │  │  ├─ TopBar.jsx
+│  │  │  │  │  │  └─ TrendingCarousel.jsx
+│  │  │  │  │  └─ Tag.jsx
+│  │  │  │  ├─ context
+│  │  │  │  │  └─ GuestSessionProvider.jsx
+│  │  │  │  ├─ pages
+│  │  │  │  │  ├─ CartPage.jsx
+│  │  │  │  │  ├─ CustomerOrdersPage.jsx
+│  │  │  │  │  ├─ FrontPage.jsx
+│  │  │  │  │  ├─ MenuPage.jsx
+│  │  │  │  │  ├─ OrderStatus.jsx
+│  │  │  │  │  ├─ PaymentPage.jsx
+│  │  │  │  │  └─ ReviewPage.jsx
+│  │  │  │  └─ services
+│  │  │  │     └─ userService.js
+│  │  │  ├─ dashboard
+│  │  │  │  ├─ components
+│  │  │  │  │  ├─ AdminTabs.jsx
+│  │  │  │  │  ├─ DashboardOverview.jsx
+│  │  │  │  │  ├─ ReportsPlaceholder.jsx
+│  │  │  │  │  ├─ StatsStrip.jsx
+│  │  │  │  │  └─ SummarySidebar.jsx
+│  │  │  │  └─ pages
+│  │  │  │     └─ AdminPanel.jsx
+│  │  │  ├─ kitchen
+│  │  │  │  ├─ components
+│  │  │  │  │  └─ KitchenOrderBoard.jsx
+│  │  │  │  └─ pages
+│  │  │  │     └─ KitchenDashboard.jsx
+│  │  │  ├─ menu
+│  │  │  │  ├─ components
+│  │  │  │  │  └─ MenuModal.jsx
+│  │  │  │  ├─ pages
+│  │  │  │  │  └─ MenuPage.jsx
+│  │  │  │  └─ services
+│  │  │  │     └─ menuService.js
+│  │  │  ├─ orders
+│  │  │  │  ├─ components
+│  │  │  │  │  ├─ OrderCard.jsx
+│  │  │  │  │  └─ OrderColumn.jsx
+│  │  │  │  ├─ pages
+│  │  │  │  │  └─ OrdersPage.jsx
+│  │  │  │  └─ services
+│  │  │  │     └─ orderService.js
+│  │  │  ├─ reviews
+│  │  │  │  ├─ pages
+│  │  │  │  │  └─ ReviewsPage.jsx
+│  │  │  │  └─ services
+│  │  │  │     └─ reviewService.js
+│  │  │  ├─ staff
+│  │  │  │  ├─ components
+│  │  │  │  │  └─ StaffModal.jsx
+│  │  │  │  ├─ pages
+│  │  │  │  │  └─ StaffPage.jsx
+│  │  │  │  └─ services
+│  │  │  │     └─ staffService.js
+│  │  │  └─ tables
+│  │  │     ├─ components
+│  │  │     │  ├─ QRModal.jsx
+│  │  │     │  └─ TableModal.jsx
+│  │  │     ├─ pages
+│  │  │     │  └─ TablesPage.jsx
+│  │  │     └─ services
+│  │  │        └─ tableService.js
+│  │  ├─ hooks
+│  │  │  ├─ useDashboardOrders.js
+│  │  │  └─ useMesaStore.js
+│  │  ├─ index.css
+│  │  ├─ layouts
+│  │  │  ├─ AdminLayout.jsx
+│  │  │  ├─ CustomerLayout.jsx
+│  │  │  └─ KitchenLayout.jsx
+│  │  ├─ main.jsx
+│  │  ├─ routes
+│  │  │  ├─ AppRoutes.jsx
+│  │  │  ├─ ProtectedRoutes.jsx
+│  │  │  └─ StaffAuthBoundary.jsx
+│  │  ├─ styles
+│  │  │  ├─ tailwind.css
+│  │  │  └─ theme.js
+│  │  └─ utils
+│  │     ├─ analytics.js
+│  │     ├─ dashboardHelpers.js
+│  │     ├─ exportCsv.js
+│  │     ├─ exportExcel.js
+│  │     ├─ exportPdf.js
+│  │     ├─ format.js
+│  │     └─ utils.js
+│  ├─ tailwind.config.js
+│  └─ vite.config.js
+├─ README.md
+└─ Smart Restaurant Automation Features.txt
+
+```

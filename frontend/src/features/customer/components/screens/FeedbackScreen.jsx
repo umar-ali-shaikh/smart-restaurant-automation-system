@@ -87,7 +87,6 @@ export default function FeedbackScreen({
       [field]: value,
     }));
   };
-  console.log("Cart Items:", cartItems);
   const submit = async () => {
     if (!form.rating) {
       setError("Please select an overall rating.");

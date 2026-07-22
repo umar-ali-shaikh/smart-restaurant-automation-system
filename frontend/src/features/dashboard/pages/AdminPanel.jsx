@@ -1,20 +1,18 @@
-import { useEffect, useMemo, useState, memo, useCallback } from "react";
+import { lazy, useEffect, useMemo, useState, memo, useCallback } from "react";
 
 import NotificationStack from "../../../components/common/NotificationStack";
 import Navbar from "../../../components/layout/Navbar";
 import Toast from "../../../components/ui/Toast";
-import AnalyticsPage from "../../analytics/pages/AnalyticsPage";
-import BillingPage from "../../billing/pages/BillingPage";
-import KitchenOrderBoard from "../../kitchen/components/KitchenOrderBoard";
-import MenuPage from "../../menu/pages/MenuPage";
-import CategoryPage from "../../category/pages/CategoryPage";
-import OrdersPage from "../../orders/pages/OrdersPage";
-import ReviewsPage from "../../reviews/pages/ReviewsPage";
-import StaffPage from "../../staff/pages/StaffPage";
-import TablesPage from "../../tables/pages/TablesPage";
+const AnalyticsPage = lazy(() => import("../../analytics/pages/AnalyticsPage"));
+const BillingPage = lazy(() => import("../../billing/pages/BillingPage"));
+const MenuPage = lazy(() => import("../../menu/pages/MenuPage"));
+const CategoryPage = lazy(() => import("../../category/pages/CategoryPage"));
+const OrdersPage = lazy(() => import("../../orders/pages/OrdersPage"));
+const ReviewsPage = lazy(() => import("../../reviews/pages/ReviewsPage"));
+const StaffPage = lazy(() => import("../../staff/pages/StaffPage"));
+const TablesPage = lazy(() => import("../../tables/pages/TablesPage"));
 import AdminTabs from "../components/AdminTabs";
 import DashboardOverview from "../components/DashboardOverview";
-import ReportsPlaceholder from "../components/ReportsPlaceholder";
 import SummarySidebar from "../components/SummarySidebar";
 import { categoryService } from "../../category/services/categoryService";
 import { reviewService } from "../../reviews/services/reviewService"; // reviewService इम्पोर्ट सुनिश्चित करें
@@ -56,7 +54,7 @@ const MobilePanelSwitch = memo(function MobilePanelSwitch({
             <button
               key={id}
               onClick={() => {
-                onChange(id);
+                onChange("admin");
                 onClose();
               }}
               className={`rounded-xl px-4 py-3 text-left text-sm font-medium transition-all duration-200 ${
@@ -129,8 +127,6 @@ export default function AdminPanel() {
     notifications,
     soundOn,
     setSoundOn,
-    updateStatus,
-    deleteOrder,
     clearServed,
     reloadOrders,
     dismissNotification,
@@ -291,10 +287,7 @@ export default function AdminPanel() {
                       }}
                     />
                   )}
-                  {adminTab !== "dashboard" &&
-                    adminTab !== "reports" &&
-                    renderActivePage()}
-                  {adminTab === "reports" && <ReportsPlaceholder />}
+                  {adminTab !== "dashboard" && renderActivePage()}
                 </div>
 
                 {/* Sidebar Column Area */}
@@ -311,15 +304,6 @@ export default function AdminPanel() {
             </div>
           )}
 
-          {activeTab === "kitchen" && (
-            <div className="w-full animate-fadeIn">
-              <KitchenOrderBoard
-                orders={stableOrders}
-                onUpdateStatus={updateStatus}
-                onDelete={deleteOrder}
-              />
-            </div>
-          )}
         </main>
       </div>
     </div>

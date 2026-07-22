@@ -4,7 +4,7 @@ import {
   updateGuestProfile,
 } from "../controllers/userController.js";
 
-import { optionalProtect } from "../middleware/authMiddleware.js";
+import { requireGuestAuth } from "../middleware/authMiddleware.js";
 
 const userRouter = express.Router();
 
@@ -12,6 +12,6 @@ const userRouter = express.Router();
 userRouter.get("/session", createGuestSession);
 
 // Update guest to customer
-userRouter.put("/profile", optionalProtect, updateGuestProfile);
+userRouter.put("/profile", requireGuestAuth, updateGuestProfile);
 
 export default userRouter;

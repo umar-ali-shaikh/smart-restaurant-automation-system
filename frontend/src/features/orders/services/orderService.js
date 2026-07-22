@@ -41,6 +41,8 @@ export const orderService = {
   },
   getById: async (id) => normalizeOrder(unwrapData(await apiClient.get(`${API_ENDPOINTS.order}/${id}`))),
   getBill: async (id) => unwrapData(await apiClient.get(`${API_ENDPOINTS.order}/${id}/bill`)),
+  recordPayment: async (id, payment) =>
+    normalizeOrder(unwrapData(await apiClient.post(`${API_ENDPOINTS.order}/${id}/payment`, payment))),
   delete: (id) => apiClient.delete(`${API_ENDPOINTS.order}/${id}`),
 };
 

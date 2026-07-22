@@ -3,6 +3,7 @@ const STATUS_FROM_API = {
   preparing: "preparing",
   ready: "ready",
   served: "served",
+  cancelled: "cancelled",
   new: "new",
 };
 

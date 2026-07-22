@@ -10,17 +10,19 @@ export default function AnalyticsPage({ menu = [], orders = [] }) {
 
   useEffect(() => {
     let mounted = true;
+    const period = chartMode === "weekly" ? "7d" : chartMode === "monthly" ? "month" : "today";
     analyticsService
-      .getSummary()
+      .getSummary({ period })
       .then((response) => {
-        if (mounted) setBackendSummary(response.data || response);
+        if (import.meta.env.DEV) console.debug("[analytics] raw API response", response);
+        if (mounted) setBackendSummary(response);
       })
       .catch(() => {});
 
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [chartMode]);
 
   const summary = useMemo(() => {
     const revenue = orders.reduce(
@@ -43,12 +45,16 @@ export default function AnalyticsPage({ menu = [], orders = [] }) {
 
   // FIX: चार्ट को ब्लैंक होने से बचाने के लिए मोड के अनुसार डेटा को ग्रुप और प्रोसेस करना
   const processedChartData = useMemo(() => {
+    if (backendSummary?.revenueTrend?.length) {
+      return backendSummary.revenueTrend.map((point) => ({
+        label: point._id,
+        revenue: Number(point.revenue || 0),
+        orders: Number(point.orders || 0),
+      }));
+    }
     if (!orders || orders.length === 0) {
       // फॉलबैक डेटा: अगर कोई ऑर्डर न हो तब भी चार्ट खाली या टूटा हुआ न दिखे
-      return [
-        { label: "Opening", revenue: 0 },
-        { label: "Current", revenue: summary.revenue },
-      ];
+      return [];
     }
 
     if (chartMode === "daily") {
@@ -77,9 +83,19 @@ export default function AnalyticsPage({ menu = [], orders = [] }) {
         : `O-${index + 1}`,
       revenue: Number(order.total || 0),
     }));
-  }, [orders, chartMode, summary.revenue]);
+  }, [backendSummary, orders, chartMode]);
+
+  if (import.meta.env.DEV) {
+    console.debug("[analytics] transformed chart dataset", processedChartData);
+  }
 
   const bestSelling = useMemo(() => {
+    if (backendSummary?.topSellingItems?.length) {
+      return backendSummary.topSellingItems.map((item) => [item.name, { qty: item.quantity, revenue: item.revenue }]);
+    }
+    if (backendSummary?.topSellingItems?.length) {
+      return backendSummary.topSellingItems.map((item) => [item.name, { qty: item.quantity, revenue: item.revenue }]);
+    }
     const dishCount = {};
     orders.forEach((order) =>
       order.items?.forEach((item) => {
@@ -94,7 +110,7 @@ export default function AnalyticsPage({ menu = [], orders = [] }) {
     return Object.entries(dishCount)
       .sort((a, b) => b[1].qty - a[1].qty)
       .slice(0, 8);
-  }, [orders]);
+  }, [backendSummary, orders]);
 
   return (
     <div className="space-y-6">
@@ -176,7 +192,7 @@ export default function AnalyticsPage({ menu = [], orders = [] }) {
           </div>
           <div className="w-full h-[300px] min-h-[300px]">
             {/* अब यहाँ प्रोसेस्ड चार्ट डेटा पास होगा जिससे ब्लैंक स्क्रीन फिक्स हो जाएगी */}
-            <BarChart mode={chartMode} chartData={processedChartData} />
+            <BarChart mode={chartMode} chartData={processedChartData} emptyMessage="No paid or completed revenue exists for this period." />
           </div>
         </div>
 

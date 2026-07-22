@@ -3,7 +3,8 @@ import MenuItem from "../models/MenuItem.js";
 import Category from "../models/Category.js";
 import Order from "../models/Order.js";
 import mongoose from "mongoose";
-import Review from "../models/Review.js";
+import { findMenuItemById, findMenuItems } from "../modules/menu/menuCatalogService.js";
+import { getOrderAnalytics } from "../modules/analytics/analyticsService.js";
 
 function isValidObjectId(id) {
   return mongoose.Types.ObjectId.isValid(id);
@@ -22,64 +23,19 @@ function invalidIdResponse(res, label = "Invalid id") {
 
 export const getAdminStats = async (req, res) => {
   try {
-    const totalOrders = await Order.countDocuments();
-
-    const revenueData = await Order.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalRevenue: { $sum: "$totalPrice" },
-        },
-      },
-    ]);
-
-    const totalRevenue = revenueData[0]?.totalRevenue || 0;
-    const activeOrders = await Order.countDocuments({
-      status: { $in: ["pending", "preparing", "ready"] },
-    });
+    const analytics = await getOrderAnalytics(req.query);
     const menuItems = await MenuItem.countDocuments();
-    const bestSellers = await Order.aggregate([
-      { $unwind: "$items" },
-      {
-        $group: {
-          _id: "$items.menuItem",
-          quantity: { $sum: "$items.quantity" },
-        },
-      },
-      { $sort: { quantity: -1 } },
-      { $limit: 5 },
-      {
-        $lookup: {
-          from: "menuitems",
-          localField: "_id",
-          foreignField: "_id",
-          as: "item",
-        },
-      },
-      { $unwind: "$item" },
-      {
-        $project: {
-          _id: "$item._id",
-          name: "$item.name",
-          quantity: 1,
-          revenue: { $multiply: ["$quantity", "$item.price"] },
-        },
-      },
-    ]);
+    const activeOrders = analytics.pending + analytics.preparing + analytics.ready;
 
     res.json({
       success: true,
-      totalOrders,
-      totalRevenue,
+      ...analytics,
       activeOrders,
       menuItems,
-      bestSellers,
       data: {
-        totalOrders,
-        totalRevenue,
+        ...analytics,
         activeOrders,
         menuItems,
-        bestSellers,
       },
     });
   } catch (error) {
@@ -93,20 +49,6 @@ export const getAdminStats = async (req, res) => {
    CATEGORY
 =========================== */
 
-export const createCategory = async (req, res) => {
-  try {
-    const category = await Category.create({
-      name: req.body.name,
-    });
-
-    res.status(201).json(category);
-  } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
-  }
-};
-
 /* ===========================
    CREATE MENU ITEM
 =========================== */
@@ -115,8 +57,6 @@ export const createMenuItem = async (req, res) => {
   try {
     const body = req.body || {};
     const price = Number(body.price);
-    console.log(req.body);
-    console.log(req.file);
     if (!body.name?.trim()) {
       return res.status(400).json({
         success: false,
@@ -328,55 +268,21 @@ export const reorderCategories = async (req, res) => {
 
 export const getMenuItems = async (req, res) => {
   try {
-    const items = await MenuItem.find()
-      .populate("category", "name image description");
-
-    const menuWithReviews = await Promise.all(
-      items.map(async (item) => {
-        const reviews = await Review.find({
-          menuItem: item._id,
-          status: "approved",
-          isDeleted: false,
-        }).sort({ createdAt: -1 });
-        console.log("Item:", item.name);
-        console.log("Item ID:", item._id);
-        console.log("Reviews Found:", reviews);
-        const count = reviews.length;
-
-        const avg =
-          count > 0
-            ? reviews.reduce((sum, review) => sum + review.rating, 0) / count
-            : 0;
-
-        return {
-          ...item.toObject(),
-          avg,
-          count,
-          topReview:
-            count > 0
-              ? {
-                text: reviews[0].comment,
-                user: reviews[0].anonymous
-                  ? "Anonymous"
-                  : reviews[0].customerName,
-                ini: (
-                  reviews[0].anonymous
-                    ? "A"
-                    : reviews[0].customerName.charAt(0)
-                ).toUpperCase(),
-                ava: "#D4AA5A",
-                time: new Date(reviews[0].createdAt).toLocaleDateString(),
-              }
-              : null,
-        };
-      })
-    );
-
-    res.json(menuWithReviews);
+    const items = await findMenuItems();
+    res.json(items.map((item) => ({
+      ...item,
+      avg: item.averageRating,
+      count: item.reviewCount,
+      topReview: item.latestReview ? {
+        text: item.latestReview.comment,
+        user: item.latestReview.anonymous ? "Anonymous" : item.latestReview.customerName,
+        ini: (item.latestReview.anonymous ? "A" : item.latestReview.customerName?.charAt(0) || "G").toUpperCase(),
+        ava: "#D4AA5A",
+        time: new Date(item.latestReview.createdAt).toLocaleDateString(),
+      } : null,
+    })));
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -386,12 +292,7 @@ export const getMenuItems = async (req, res) => {
 
 export const getMenuItemById = async (req, res) => {
   try {
-    if (!isValidObjectId(req.params.id)) {
-      return invalidIdResponse(res);
-    }
-
-    const item = await MenuItem.findById(req.params.id)
-      .populate("category", "name image description");
+    const item = await findMenuItemById(req.params.id);
 
     if (!item) {
       return res.status(404).json({
@@ -413,14 +314,7 @@ export const getMenuItemById = async (req, res) => {
 
 export const getItemsByCategory = async (req, res) => {
   try {
-    if (!isValidObjectId(req.params.categoryId)) {
-      return invalidIdResponse(res, "Invalid category");
-    }
-
-    const items = await MenuItem.find({
-      category: req.params.categoryId,
-      isAvailable: true,
-    }).populate("category", "name image description");
+    const items = await findMenuItems({ categoryId: req.params.categoryId });
 
     res.json(items);
   } catch (error) {
@@ -436,14 +330,7 @@ export const getItemsByCategory = async (req, res) => {
 
 export const searchMenuItems = async (req, res) => {
   try {
-    const keyword = req.query.q || "";
-
-    const items = await MenuItem.find({
-      name: {
-        $regex: keyword,
-        $options: "i",
-      },
-    }).populate("category", "name image description");
+    const items = await findMenuItems({ search: req.query.q || "" });
 
     res.json(items);
   } catch (error) {

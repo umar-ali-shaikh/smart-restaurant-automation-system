@@ -34,7 +34,7 @@ const tableSchema = new mongoose.Schema(
 
         occupiedBy: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "Customer",
+            ref: "User",
             default: null,
         },
 

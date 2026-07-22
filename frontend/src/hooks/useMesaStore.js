@@ -48,8 +48,17 @@ export function useMesaStore() {
   return {
     ...state,
     refresh,
-    setMenu: (menu) => setState((current) => ({ ...current, menu })),
-    setTables: (tables) => setState((current) => ({ ...current, tables })),
-    setStaff: (staff) => setState((current) => ({ ...current, staff })),
+    setMenu: (nextMenu) => setState((current) => ({
+      ...current,
+      menu: typeof nextMenu === "function" ? nextMenu(current.menu) : nextMenu,
+    })),
+    setTables: (nextTables) => setState((current) => ({
+      ...current,
+      tables: typeof nextTables === "function" ? nextTables(current.tables) : nextTables,
+    })),
+    setStaff: (nextStaff) => setState((current) => ({
+      ...current,
+      staff: typeof nextStaff === "function" ? nextStaff(current.staff) : nextStaff,
+    })),
   };
 }
