@@ -1,17 +1,14 @@
 import { Server } from "socket.io";
 import Table from "../models/Table.js"; // Sahi path match kar diya hai schema ke mutabik
+import { isAllowedOrigin } from "../config/cors.js";
 
 let io;
 const tableTimeouts = {}; // Active 10-minute countdowns ko track karne ke liye tracking global instance
 
 export const initSocket = (server) => {
-  const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
-    .split(",")
-    .map((origin) => origin.trim());
-
   io = new Server(server, {
     cors: {
-      origin: allowedOrigins,
+      origin: isAllowedOrigin,
       credentials: true,
     },
   });

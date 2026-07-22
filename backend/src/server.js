@@ -24,15 +24,17 @@ import tableRoutes from "./routes/tableRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import cookieParser from "cookie-parser";
 import userRouter from "./routes/userRoutes.js";
+import { isAllowedOrigin } from "./config/cors.js";
+import { validateAuthConfiguration } from "./config/auth.js";
 // 🔥 1. CREATE APP FIRST
 const app = express();
+validateAuthConfiguration();
 
-const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
-  .split(",")
-  .map((origin) => origin.trim());
+// Render terminates TLS at its proxy; this lets Express handle secure cookies correctly.
+app.set("trust proxy", 1);
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: isAllowedOrigin,
   credentials: true,
 }));
 

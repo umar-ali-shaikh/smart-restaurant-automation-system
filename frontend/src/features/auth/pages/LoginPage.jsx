@@ -48,7 +48,7 @@ export default function LoginPage() {
         role: response.user?.role || role,
       };
 
-      setAuthUser(userData, response.token);
+      setAuthUser(userData);
 
       if (userData.role === "admin") {
         navigate("/admin");

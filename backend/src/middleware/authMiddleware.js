@@ -1,29 +1,29 @@
 import Admin from "../models/Admin.js";
 import User from "../models/Users.js";
-import crypto from "crypto";
+import {
+  AUTH_COOKIE_NAME,
+  clearAuthCookie,
+  verifySessionToken,
+} from "../config/auth.js";
 
 export const protect = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
+    const token = req.cookies?.[AUTH_COOKIE_NAME];
 
-    console.log("AUTH HEADER:", authHeader);
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!token) {
       return res.status(401).json({ message: "Not authorized" });
     }
 
-    const token = authHeader.split(" ")[1];
-
-    console.log("TOKEN FROM REQUEST:", token);
+    const payload = verifySessionToken(token);
 
     const user = await Admin.findOne({
-      sessionToken: token,
+      _id: payload.sub,
+      sessionToken: payload.sid,
       sessionExpiresAt: { $gt: new Date() },
     }).select("+sessionToken +sessionExpiresAt");
 
-    console.log("USER FOUND:", user);
-
     if (!user) {
+      clearAuthCookie(res);
       return res.status(401).json({
         message: "Session expired. Please login again.",
       });
@@ -32,8 +32,8 @@ export const protect = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    console.log(error);
-    res.status(401).json({ message: error.message });
+    clearAuthCookie(res);
+    res.status(401).json({ message: "Session expired. Please login again." });
   }
 };
 
@@ -59,9 +59,7 @@ export const rolesAllowed = (...roles) => (req, res, next) => {
 
 export const optionalProtect = async (req, res, next) => {
   try {
-    const token =
-      req.cookies?.guestToken ||
-      req.headers.authorization?.replace("Bearer ", "");
+    const token = req.cookies?.guestToken;
 
     if (!token) {
       req.user = null;

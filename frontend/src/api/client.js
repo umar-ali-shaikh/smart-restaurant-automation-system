@@ -1,21 +1,6 @@
   import axios from "axios";
   import { API_BASE_URL } from "./apiConfig";
 
-  const TOKEN_KEYS = ["auth_token", "token"];
-
-  export function getAuthToken() {
-    return TOKEN_KEYS.map((key) => localStorage.getItem(key)).find(Boolean);
-  }
-
-  export function setAuthToken(token) {
-    if (token) {
-      localStorage.setItem("auth_token", token);
-    } else {
-      localStorage.removeItem("auth_token");
-      localStorage.removeItem("token");
-    }
-  }
-
   function normalizeError(error) {
     const response = error.response;
     const payload = response?.data;
@@ -36,26 +21,9 @@
     withCredentials: true,
   });
 
-  axiosClient.interceptors.request.use((config) => {
-    const token = getAuthToken();
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config;
-  });
-
   axiosClient.interceptors.response.use(
     (response) => response.data,
-    (error) => {
-      if (error.response?.status === 401) {
-        setAuthToken(null);
-        localStorage.removeItem("auth_user");
-      }
-
-      return Promise.reject(normalizeError(error));
-    },
+    (error) => Promise.reject(normalizeError(error)),
   );
 
   export const apiClient = {

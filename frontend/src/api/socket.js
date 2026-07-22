@@ -1,6 +1,5 @@
 import { io } from "socket.io-client";
 import { SOCKET_URL } from "./apiConfig";
-import { getAuthToken } from "./client";
 
 let socket;
 
@@ -11,10 +10,7 @@ export function getSocket() {
 
       // websocket force mat karo
       transports: ["polling", "websocket"],
-
-      auth: {
-        token: getAuthToken(),
-      },
+      withCredentials: true,
     });
 
     socket.on("connect", () => {

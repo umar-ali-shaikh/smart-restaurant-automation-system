@@ -24,7 +24,6 @@ export const authService = {
 
     return {
       user: response.user || response.data || response,
-      token: response.token,
     };
   },
 

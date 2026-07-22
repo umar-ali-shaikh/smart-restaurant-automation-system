@@ -1,5 +1,11 @@
-import crypto from "crypto";
 import Admin from "../models/Admin.js";
+import {
+  AUTH_COOKIE_NAME,
+  authCookieOptions,
+  clearAuthCookie,
+  createSessionToken,
+  SESSION_DURATION_MS,
+} from "../config/auth.js";
 
 
 const publicFields = "_id name employeeId username email role color online createdAt updatedAt";
@@ -18,8 +24,15 @@ function toAuthUser(user) {
   };
 }
 
-function createSessionToken() {
-  return crypto.randomBytes(48).toString("hex");
+async function createAndStoreSession(user) {
+  const { token, sessionId } = createSessionToken(user);
+
+  user.sessionToken = sessionId;
+  user.sessionExpiresAt = new Date(Date.now() + SESSION_DURATION_MS);
+  user.online = true;
+  await user.save();
+
+  return token;
 }
 
 export const adminLogin = async (req, res) => {
@@ -44,17 +57,7 @@ export const adminLogin = async (req, res) => {
     });
   }
 
-  const token = createSessionToken();
-
-  admin.sessionToken = token;
-  admin.sessionExpiresAt = new Date(
-    Date.now() + 1000 * 60 * 60 * 24 * 7
-  );
-  admin.online = true;
-
-
-  console.log(token)
-  await admin.save();
+  const token = await createAndStoreSession(admin);
 
   const authUser = {
     _id: admin._id,
@@ -64,11 +67,10 @@ export const adminLogin = async (req, res) => {
     role: admin.role,
   };
 
-  res.status(200).json({
+  res.cookie(AUTH_COOKIE_NAME, token, authCookieOptions()).status(200).json({
     success: true,
     message: "Admin login successful",
     user: authUser,
-    token,
   });
 };
 
@@ -95,19 +97,7 @@ export const kitchenLogin = async (req, res) => {
     });
   }
 
-  const token = createSessionToken();
-
-  staff.sessionToken = token;
-  staff.sessionExpiresAt = new Date(
-    Date.now() + 1000 * 60 * 60 * 24 * 7
-  );
-  staff.online = true;
-
-  await staff.save();
-  const check = await Admin.findById(staff._id);
-
-  console.log(check.sessionToken);
-  console.log(check.sessionExpiresAt);
+  const token = await createAndStoreSession(staff);
   const authUser = {
     _id: staff._id,
     id: staff._id,
@@ -118,11 +108,10 @@ export const kitchenLogin = async (req, res) => {
     color: staff.color,
   };
 
-  res.status(200).json({
+  res.cookie(AUTH_COOKIE_NAME, token, authCookieOptions()).status(200).json({
     success: true,
     message: "Kitchen login successful",
     user: authUser,
-    token,
   });
 };
 
@@ -143,8 +132,18 @@ export const logout = async (req, res) => {
     });
   }
 
+  clearAuthCookie(res);
   res.json({
     success: true,
     message: "Logged out successfully",
+  });
+};
+
+export const refreshSession = async (req, res) => {
+  const token = await createAndStoreSession(req.user);
+
+  res.cookie(AUTH_COOKIE_NAME, token, authCookieOptions()).json({
+    success: true,
+    user: toAuthUser(req.user),
   });
 };
