@@ -6,7 +6,10 @@ export default function ProtectedRoutes({ allowedRoles }) {
   const location = useLocation();
 
   if (isLoading) return null;
-  if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
+  if (!user) {
+    const loginPath = location.pathname === "/kitchen" ? "/kitchen/login" : "/admin/login";
+    return <Navigate to={loginPath} replace state={{ from: location }} />;
+  }
   if (allowedRoles?.length && !allowedRoles.includes(user.role))
     return <Navigate to={user.role === "kitchen" ? "/kitchen" : "/admin"} replace />;
 

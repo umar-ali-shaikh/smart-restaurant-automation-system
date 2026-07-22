@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { loginUser } from "../services/authService";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/authContext";
 
 export default function LoginPage({ initialRole = "admin" }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login: setAuthUser } = useAuth();
 
   const [role, setRole] = useState(initialRole);
@@ -50,11 +51,14 @@ export default function LoginPage({ initialRole = "admin" }) {
 
       setAuthUser(userData);
 
-      if (userData.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/kitchen");
-      }
+      const requestedPath = location.state?.from?.pathname;
+      const canReturnToRequestedPath = requestedPath === "/admin" || requestedPath === "/kitchen";
+      const destination = userData.role === "kitchen"
+        ? "/kitchen"
+        : canReturnToRequestedPath
+          ? `${requestedPath}${location.state?.from?.search || ""}${location.state?.from?.hash || ""}`
+          : "/admin";
+      navigate(destination, { replace: true });
     } catch (error) {
       setError(error.message || "Invalid credentials");
     } finally {

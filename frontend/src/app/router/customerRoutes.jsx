@@ -13,10 +13,12 @@ const CustomerReviewPage = lazy(() => import("@/features/customer/pages/ReviewPa
 export const customerRouteTree = (
   <Route element={<GuestSessionProvider />}>
     <Route path={CUSTOMER_PATHS.home} element={<CustomerRestaurantPage />} />
+    <Route path="/menu" element={<CustomerRestaurantPage />} />
     <Route path={CUSTOMER_PATHS.cart} element={<CustomerCartPage />} />
     <Route path={CUSTOMER_PATHS.orderStatus} element={<CustomerOrderStatusPage />} />
     <Route path={CUSTOMER_PATHS.payment} element={<CustomerPaymentPage />} />
     <Route path={CUSTOMER_PATHS.orders} element={<CustomerOrdersPage />} />
+    <Route path="/orders" element={<CustomerOrdersPage />} />
     <Route path={CUSTOMER_PATHS.review} element={<CustomerReviewPage />} />
   </Route>
 );
