@@ -6,7 +6,9 @@ export default function GuestSessionProvider() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    userService.createSession().finally(() => setIsReady(true));
+    userService.createSession()
+      .catch(() => null)
+      .finally(() => setIsReady(true));
   }, []);
 
   if (!isReady) {

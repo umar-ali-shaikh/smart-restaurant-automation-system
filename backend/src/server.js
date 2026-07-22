@@ -56,9 +56,6 @@ const server = http.createServer(app);
 const io = initSocket(server);
 app.set("io", io);
 
-// Readiness is meaningful only after the initial database connection succeeds.
-await connectDB();
-
 // Middleware
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
@@ -66,6 +63,10 @@ app.use(cookieParser());
 app.use(requireTrustedOrigin);
 app.use("/health", healthRoutes);
 app.use(globalLimiter);
+app.use("/api", (req, res, next) => {
+  if (mongoose.connection.readyState === 1) return next();
+  return res.status(503).json({ success: false, message: "Database is not ready", data: null });
+});
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -97,6 +98,9 @@ const PORT = process.env.PORT || 5001;
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  connectDB().catch((error) => {
+    console.error(`MongoDB connection failed; readiness remains unavailable: ${error.message}`);
+  });
 });
 
 let shuttingDown = false;
