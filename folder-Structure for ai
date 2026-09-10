@@ -1,0 +1,95 @@
+backend/
+└── src/
+    └── ai/
+        │
+        ├── agents/
+        │   ├── manager/
+        │   │   ├── managerAgent.js
+        │   │   ├── managerPrompt.js
+        │   │   ├── managerTools.js
+        │   │   └── managerService.js
+        │   │
+        │   ├── kitchen/
+        │   ├── inventory/
+        │   ├── billing/
+        │   ├── reservation/
+        │   ├── support/
+        │   └── knowledge/
+        │
+        ├── rag/
+        │   ├── embeddings/
+        │   ├── ingestion/
+        │   ├── retrieval/
+        │   ├── knowledge/
+        │   └── ragService.js
+        │
+        ├── llm/
+        │   ├── openaiClient.js
+        │   ├── responses.js
+        │   ├── embeddings.js
+        │   ├── prompts.js
+        │   └── tokenCounter.js
+        │
+        ├── workflows/
+        │   ├── n8n/
+        │   │   ├── webhookClient.js
+        │   │   ├── workflowRegistry.js
+        │   │   ├── workflowService.js
+        │   │   ├── salesWorkflow.js
+        │   │   ├── inventoryWorkflow.js
+        │   │   ├── reservationWorkflow.js
+        │   │   ├── reportWorkflow.js
+        │   │   └── notificationWorkflow.js
+        │   │
+        │   └── scheduler/
+        │       ├── cronJobs.js
+        │       └── reminders.js
+        │
+        ├── memory/
+        │   ├── conversationMemory.js
+        │   ├── sessionMemory.js
+        │   └── historyService.js
+        │
+        ├── tools/
+        │   ├── orderTool.js
+        │   ├── menuTool.js
+        │   ├── billingTool.js
+        │   ├── inventoryTool.js
+        │   ├── reservationTool.js
+        │   ├── analyticsTool.js
+        │   ├── employeeTool.js
+        │   ├── customerTool.js
+        │   └── reviewTool.js
+        │
+        ├── services/
+        │   ├── aiChatService.js
+        │   ├── aiActionService.js
+        │   ├── aiRouter.js
+        │   ├── aiAnalyticsService.js
+        │   ├── aiSummaryService.js
+        │   └── agentOrchestrator.js
+        │
+        ├── controllers/
+        │   └── aiController.js
+        │
+        ├── routes/
+        │   └── aiRoutes.js
+        │
+        ├── middleware/
+        │   ├── aiAuth.js
+        │   ├── aiRateLimiter.js
+        │   └── validatePrompt.js
+        │
+        ├── config/
+        │   ├── openai.js
+        │   ├── pinecone.js
+        │   ├── supabase.js
+        │   └── n8n.js
+        │
+        ├── utils/
+        │   ├── promptBuilder.js
+        │   ├── responseFormatter.js
+        │   ├── jsonParser.js
+        │   └── logger.js
+        │
+        └── index.js
