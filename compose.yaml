@@ -1,0 +1,37 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: restaurant-backend
+    env_file:
+      - ./backend/.env
+    ports:
+      - "5001:5001"
+    networks:
+      - restaurant-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5001/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+  redis:
+    image: redis:7-alpine
+    container_name: restaurant-redis
+    # ports:
+    #   - "6379:6379"
+    networks:
+      - restaurant-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+networks:
+  restaurant-network:
+    external: true
