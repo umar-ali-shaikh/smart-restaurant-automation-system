@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     stages {
-        stage('Test') {
+       stage('Test') {
             steps {
-                bat 'echo Restaurant Automation Pipeline Started'
+                bat 'cd backend && npm test'
             }
         }
     }
