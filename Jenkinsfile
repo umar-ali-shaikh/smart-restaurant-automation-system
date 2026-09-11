@@ -14,5 +14,11 @@ pipeline {
                 bat 'cd backend && npm test'
             }
         }
+
+        stage('Docker Build') {
+            steps {
+                bat 'docker build -t restaurant-backend:jenkins ./backend'
+            }
+        }
     }
 }
