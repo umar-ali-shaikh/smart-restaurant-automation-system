@@ -26,7 +26,6 @@ pipeline {
                 withCredentials([
                     string(credentialsId: 'MONGO_URI', variable: 'MONGO_URI'),
                     string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET'),
-                    string(credentialsId: 'REDIS_URL', variable: 'REDIS_URL'),
                     string(credentialsId: 'CLOUDINARY_CLOUD_NAME', variable: 'CLOUDINARY_CLOUD_NAME'),
                     string(credentialsId: 'CLOUDINARY_API_KEY', variable: 'CLOUDINARY_API_KEY'),
                     string(credentialsId: 'CLOUDINARY_API_SECRET', variable: 'CLOUDINARY_API_SECRET'),
@@ -52,7 +51,7 @@ EOF
                         echo "Creating Docker network if it does not exist..."
 
                         docker network inspect restaurant-network >/dev/null 2>&1 || \
-                        docker network create restaurant-network
+                            docker network create restaurant-network
 
                         echo "Removing old Redis container..."
 
@@ -61,10 +60,10 @@ EOF
                         echo "Starting Redis..."
 
                         docker run -d \
-                          --name restaurant-redis-jenkins \
-                          --network restaurant-network \
-                          --network-alias redis \
-                          redis:7-alpine
+                            --name restaurant-redis-jenkins \
+                            --network restaurant-network \
+                            --network-alias redis \
+                            redis:7-alpine
 
                         echo "Waiting for Redis..."
 
@@ -81,11 +80,11 @@ EOF
                         echo "Starting backend..."
 
                         docker run -d \
-                          --name restaurant-backend-jenkins \
-                          --network restaurant-network \
-                          -p 5002:5001 \
-                          --env-file backend/.env \
-                          restaurant-backend:jenkins
+                            --name restaurant-backend-jenkins \
+                            --network restaurant-network \
+                            -p 5002:5001 \
+                            --env-file backend/.env \
+                            restaurant-backend:jenkins
 
                         echo "Waiting for backend..."
 
